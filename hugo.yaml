@@ -1,12 +1,9 @@
 baseURL: https://example.org/
 languageCode: en-us
-title: My New Hugo Site
+title: HuaXuan
 theme: hextra
 
-
-# Configuration
-baseURL: "https://example.com/"
-title: "Hextra"
+title: "HuaXuan"
 
 enableRobotsTXT: true
 enableGitInfo: true
@@ -27,12 +24,12 @@ languages:
   en:
     languageName: English
     weight: 1
-    title: Hextra
-  zh-cn:
-    languageName: 台灣話
-    languageCode: zh-TW
-    weight: 2
-    title: Hextra
+    title: HuaXuan
+  # zh-cn:
+  #   languageName: 台灣話
+  #   languageCode: zh-TW
+  #   weight: 2
+  #   title: HuaXuan
 
 module:
   hugoVersion:
@@ -58,42 +55,40 @@ menu:
       name: Documentation
       pageRef: /docs
       weight: 1
-    - identifier: showcase
-      name: Showcase
-      pageRef: /showcase
-      weight: 2
     - identifier: blog
       name: Blog
       pageRef: /blog
-      weight: 3
+      weight: 2
     - identifier: about
       name: About
       pageRef: /about
-      weight: 4
+      weight: 3
     - name: Search
-      weight: 5
+      weight: 4
       params:
         type: search
-    # - name: GitHub
-    #   weight: 6
-    #   url: "https://github.com/imfing/hextra"
-    #   params:
-    #     icon: github
-
-  sidebar:
-    - identifier: more
-      name: More
+    - name: GitHub
+      weight: 5
+      url: "https://github.com/hooroo"
       params:
-        type: separator
-      weight: 1
-    - identifier: about
-      name: "About"
-      pageRef: "/about"
-      weight: 2
-    - identifier: hugoDocs
-      name: "Hugo Docs ↗"
-      url: "https://gohugo.io/documentation/"
-      weight: 3
+        icon: github
+    - name: LinkedIn
+      weight: 6
+      url: "https://www.linkedin.com/in/huaxuanlin"
+      params:
+        icon: linkedin
+        color: blue
+
+  # sidebar:
+  #   - identifier: more
+  #     name: More
+  #     params:
+  #       type: separator
+  #     weight: 1
+  #   - identifier: about
+  #     name: "About"
+  #     pageRef: "/about"
+  #     weight: 2
 
 params:
   description: Modern, responsive, batteries-included Hugo theme for creating beautiful static websites.
@@ -102,7 +97,7 @@ params:
     displayTitle: true
     displayLogo: true
     logo:
-      path: images/logo.svg
+      path: images/logo.jpeg
       dark: images/logo-dark.svg
       # width: 40
       # height: 20
@@ -125,7 +120,7 @@ params:
     width: normal
 
   displayUpdatedDate: true
-  dateFormat: "January 2, 2006"
+  dateFormat: "June 25, 2000"
 
   # Search
   # flexsearch is enabled by default

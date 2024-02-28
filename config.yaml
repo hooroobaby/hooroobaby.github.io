@@ -69,7 +69,7 @@ menu:
         type: search
     - name: GitHub
       weight: 5
-      url: "https://github.com/hooroo"
+      url: "https://github.com/hooroobaby"
       params:
         icon: github
     - name: LinkedIn
@@ -78,6 +78,11 @@ menu:
       params:
         icon: linkedin
         color: blue
+    - name: Email
+      weight: 7
+      url: "mailto:amy200006250625@gmail.com"
+      params:
+        icon: mail
 
   # sidebar:
   #   - identifier: more

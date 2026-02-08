@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 90%;
+            max-width: 98%;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -182,8 +182,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Global Weather Forecast</h1>
-        <p> 免費版只能五天ＱＱ </p>
+        <h1>🌍 Global Weather forecast</h1>
+        <p style="text-align: center; color: #a9a9a9; font-size: 0.9em; margin-bottom: 20px; font-style: italic;">
+            免費的只能五天ＱＱ
+        </p>
         
         <div class="controls">
             <input type="text" id="cityInput" placeholder="what city~" />
@@ -192,6 +194,9 @@
         </div>
         
         <div class="quick-cities">
+            <button onclick="getRecommendation()" style="background: #ffd700; color: #333; font-weight: bold; border: 2px solid #ffb347;">
+                ⭐ Recommend Best City
+            </button>
             <button onclick="quickSearch('Taipei')"> 🇹🇼 Taipei</button>
             <button onclick="quickSearch('Yilan')"> 🇹🇼 Yilan</button>
             <button onclick="quickSearch('Busan')"> 🇰🇷 Busan</button>
@@ -216,6 +221,149 @@
         function quickSearch(city) {
             document.getElementById('cityInput').value = city;
             getWeather();
+        }
+        
+        async function getRecommendation() {
+            const resultDiv = document.getElementById('weatherResult');
+            resultDiv.innerHTML = '<div class="loading">🔍 Analyzing weather in all cities...</div>';
+            
+            // List of cities to check
+            const cities = ['Taipei', 'Yilan', 'Busan', 'Tokyo', 'Kyoto', 'Singapore', 'London', 'Seattle'];
+            const weatherData = [];
+            
+            try {
+                // First, try to get user's location
+                let userLocation = null;
+                if (navigator.geolocation) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                        });
+                        
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        const response = await fetch(
+                            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
+                        );
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            userLocation = {
+                                name: data.name,
+                                temp: data.main.temp,
+                                rain: data.weather[0].main.toLowerCase().includes('rain'),
+                                description: data.weather[0].description
+                            };
+                        }
+                    } catch (e) {
+                        console.log('Could not get user location');
+                    }
+                }
+                
+                // Fetch weather for all cities
+                for (const city of cities) {
+                    try {
+                        const response = await fetch(
+                            `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=en`
+                        );
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            weatherData.push({
+                                name: data.name,
+                                temp: data.main.temp,
+                                rain: data.weather[0].main.toLowerCase().includes('rain'),
+                                description: data.weather[0].description,
+                                humidity: data.main.humidity,
+                                icon: data.weather[0].icon
+                            });
+                        }
+                    } catch (e) {
+                        console.error(`Error fetching ${city}:`, e);
+                    }
+                }
+                
+                // Find best city: hottest + no rain
+                const noRainCities = weatherData.filter(city => !city.rain);
+                const bestCity = noRainCities.length > 0 
+                    ? noRainCities.reduce((max, city) => city.temp > max.temp ? city : max)
+                    : weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
+                
+                // Find hottest and check for rain
+                const hottestCity = weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
+                
+                // Build recommendation message
+                let recommendationHTML = '<div class="weather-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);">';
+                recommendationHTML += '<h3>⭐ Weather Recommendation</h3>';
+                
+                // Show user location first if available
+                if (userLocation) {
+                    const userRainStatus = userLocation.rain ? '🌧️ Rainy' : '☀️ No rain';
+                    recommendationHTML += `
+                        <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                            <h4 style="margin-bottom: 10px;">📍 Your Location: ${userLocation.name}</h4>
+                            <p style="font-size: 1.1em;">🌡️ ${Math.round(userLocation.temp)}°C • ${userRainStatus}</p>
+                            <p style="opacity: 0.9;">${userLocation.description}</p>
+                        </div>
+                    `;
+                }
+                
+                // Show best recommendation
+                if (!bestCity.rain) {
+                    recommendationHTML += `
+                        <div style="background: rgba(255,255,255,0.3); padding: 20px; border-radius: 10px; margin: 15px 0;">
+                            <h4 style="font-size: 1.3em; margin-bottom: 10px;">🎉 Best Choice: ${bestCity.name}</h4>
+                            <p style="font-size: 1.2em; margin: 10px 0;">
+                                🌡️ ${Math.round(bestCity.temp)}°C (Hottest) • ☀️ No rain
+                            </p>
+                            <p style="opacity: 0.9;">${bestCity.description}</p>
+                            <button onclick="quickSearch('${bestCity.name}')" style="margin-top: 15px; background: white; color: #ff8c69; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                                View Full Forecast →
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    recommendationHTML += `
+                        <div style="background: rgba(255,255,255,0.3); padding: 20px; border-radius: 10px; margin: 15px 0;">
+                            <h4 style="font-size: 1.3em; margin-bottom: 10px;">🌡️ Hottest: ${hottestCity.name}</h4>
+                            <p style="font-size: 1.2em; margin: 10px 0;">
+                                ${Math.round(hottestCity.temp)}°C • ${hottestCity.rain ? '🌧️ Rainy' : '☀️ No rain'}
+                            </p>
+                            <p style="opacity: 0.9;">${hottestCity.description}</p>
+                            <p style="margin-top: 10px; font-size: 0.9em;">⚠️ All cities have rain today</p>
+                        </div>
+                    `;
+                }
+                
+                // Show comparison table
+                recommendationHTML += '<div style="margin-top: 20px;"><h4 style="margin-bottom: 10px;">📊 All Cities Comparison:</h4>';
+                recommendationHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">';
+                
+                weatherData.sort((a, b) => b.temp - a.temp).forEach(city => {
+                    const rainIcon = city.rain ? '🌧️' : '☀️';
+                    const isBest = city.name === bestCity.name && !city.rain;
+                    recommendationHTML += `
+                        <div style="background: ${isBest ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)'}; padding: 10px; border-radius: 8px; ${isBest ? 'border: 2px solid white;' : ''}">
+                            <div style="font-weight: bold;">${city.name} ${isBest ? '⭐' : ''}</div>
+                            <div>${Math.round(city.temp)}°C ${rainIcon}</div>
+                        </div>
+                    `;
+                });
+                
+                recommendationHTML += '</div></div></div>';
+                
+                resultDiv.innerHTML = recommendationHTML;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <p>Unable to get weather recommendations</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Please try again later</p>
+                    </div>
+                `;
+            }
         }
         
         async function getLocationWeather() {

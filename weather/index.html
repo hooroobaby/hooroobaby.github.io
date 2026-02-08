@@ -113,10 +113,32 @@
         }
         
         .weather-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            display: flex;
             gap: 20px;
             margin-top: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 20px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .weather-grid::-webkit-scrollbar {
+            height: 10px;
+        }
+        
+        .weather-grid::-webkit-scrollbar-track {
+            background: rgba(255, 140, 105, 0.1);
+            border-radius: 10px;
+        }
+        
+        .weather-grid::-webkit-scrollbar-thumb {
+            background: #ff8c69;
+            border-radius: 10px;
+        }
+        
+        .weather-grid::-webkit-scrollbar-thumb:hover {
+            background: #ff6b47;
         }
         
         .weather-card {
@@ -126,6 +148,13 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transition: transform 0.3s;
+            min-width: 300px;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+        
+        .weather-card.full-width {
+            min-width: 100%;
         }
         
         .weather-card:hover {
@@ -315,7 +344,7 @@
                 const hottestCity = weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
                 
                 // Build recommendation message
-                let recommendationHTML = '<div class="weather-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ffd700 0%, #f8b524 100%);">';
+                let recommendationHTML = '<div class="weather-card full-width" style="min-width: 100%; background: linear-gradient(135deg, #ffd700 0%, #f8b524 100%);">';
                 recommendationHTML += '<h3>Weather Recommendation</h3>';
                 
                 // Show user location first if available
@@ -550,7 +579,7 @@
             
             // Display current weather
             const currentHTML = `
-                <div class="weather-card" style="grid-column: 1 / -1;">
+                <div class="weather-card full-width" style="min-width: 100%;">
                     <h3>📍 ${current.name}, ${current.sys.country} - Now</h3>
                     <div style="display: flex; align-items: center; gap: 20px; margin: 20px 0;">
                         <div style="font-size: 4em;">${getWeatherIcon(current.weather[0].icon)}</div>
@@ -605,6 +634,9 @@
             `).join('');
             
             resultDiv.innerHTML = `
+                <div style="text-align: center; color: #ff8c69; margin-bottom: 10px; font-size: 0.9em;">
+                    👈 Swipe to see more days 👉
+                </div>
                 <div class="weather-grid">
                     ${currentHTML}
                     ${forecastHTML}

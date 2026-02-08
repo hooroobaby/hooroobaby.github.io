@@ -299,13 +299,19 @@
                     }
                 }
                 
-                // Find best city: hottest + no rain
-                const noRainCities = weatherData.filter(city => !city.rain);
-                const bestCity = noRainCities.length > 0 
-                    ? noRainCities.reduce((max, city) => city.temp > max.temp ? city : max)
-                    : weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
+                // Find best city: clear weather first, then hottest
+                const clearWeatherCities = weatherData.filter(city => !city.rain);
                 
-                // Find hottest and check for rain
+                let bestCity;
+                if (clearWeatherCities.length > 0) {
+                    // If there are clear weather cities, pick the hottest one
+                    bestCity = clearWeatherCities.reduce((max, city) => city.temp > max.temp ? city : max);
+                } else {
+                    // If all cities have bad weather, pick the hottest one
+                    bestCity = weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
+                }
+                
+                // Find hottest overall
                 const hottestCity = weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
                 
                 // Build recommendation message
@@ -331,7 +337,7 @@
                         <div style="background: rgba(255,255,255,0.3); padding: 20px; border-radius: 10px; margin: 15px 0;">
                             <h4 style="font-size: 1.3em; margin-bottom: 10px;">🎉 Best Choice: ${bestCity.name}</h4>
                             <p style="font-size: 1.2em; margin: 10px 0;">
-                                🌡️ ${Math.round(bestCity.temp)}°C (Hottest) • ☀️ Clear weather
+                                ☀️ Clear weather • 🌡️ ${Math.round(bestCity.temp)}°C
                             </p>
                             <p style="opacity: 0.9;">${bestCity.description} (${bestCity.weatherMain})</p>
                             <button onclick="quickSearch('${bestCity.name}')" style="margin-top: 15px; background: white; color: #ff8c69; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
@@ -342,7 +348,7 @@
                 } else {
                     recommendationHTML += `
                         <div style="background: rgba(255,255,255,0.3); padding: 20px; border-radius: 10px; margin: 15px 0;">
-                            <h4 style="font-size: 1.3em; margin-bottom: 10px;">🌡️ Hottest: ${hottestCity.name}</h4>
+                            <h4 style="font-size: 1.3em; margin-bottom: 10px;">🌡️ Warmest (but cloudy): ${hottestCity.name}</h4>
                             <p style="font-size: 1.2em; margin: 10px 0;">
                                 ${Math.round(hottestCity.temp)}°C • ${hottestCity.rain ? '☁️ Cloudy/Rainy' : '☀️ Clear'}
                             </p>
@@ -588,7 +594,7 @@
                         <span>${day.weather}</span>
                     </div>
                     <div class="weather-info">
-                        <span class="icon">��</span>
+                        <span class="icon">💧</span>
                         <span>Humidity ${day.humidity}%</span>
                     </div>
                     <div class="weather-info">

@@ -194,7 +194,7 @@
         </div>
         
         <div class="quick-cities">
-            <button onclick="getRecommendation()" style="background: #ffd700; color: #333; font-weight: bold; border: 2px solid #ffb347;">
+            <button onclick="getRecommendation()" style="background: #f8b524; color: #333; font-weight: bold; border: 2px solid #ffb347;">
                 ⭐ Recommend Best City
             </button>
             <button onclick="quickSearch('Taipei')"> 🇹🇼 Taipei</button>
@@ -227,6 +227,19 @@
             const resultDiv = document.getElementById('weatherResult');
             resultDiv.innerHTML = '<div class="loading">🔍 Analyzing weather in all cities...</div>';
             
+            // Helper function to determine if weather is bad (rainy/cloudy/stormy)
+            function isRainyWeather(weather) {
+                const main = weather.main.toLowerCase();
+                const description = weather.description.toLowerCase();
+                
+                // Bad weather conditions
+                const badConditions = ['rain', 'drizzle', 'thunderstorm', 'snow', 'mist', 'fog', 'overcast clouds'];
+                
+                return badConditions.some(condition => 
+                    main.includes(condition) || description.includes(condition)
+                );
+            }
+            
             // List of cities to check
             const cities = ['Taipei', 'Yilan', 'Busan', 'Tokyo', 'Kyoto', 'Singapore', 'London', 'Seattle'];
             const weatherData = [];
@@ -252,8 +265,9 @@
                             userLocation = {
                                 name: data.name,
                                 temp: data.main.temp,
-                                rain: data.weather[0].main.toLowerCase().includes('rain'),
-                                description: data.weather[0].description
+                                rain: isRainyWeather(data.weather[0]),
+                                description: data.weather[0].description,
+                                weatherMain: data.weather[0].main
                             };
                         }
                     } catch (e) {
@@ -273,10 +287,11 @@
                             weatherData.push({
                                 name: data.name,
                                 temp: data.main.temp,
-                                rain: data.weather[0].main.toLowerCase().includes('rain'),
+                                rain: isRainyWeather(data.weather[0]),
                                 description: data.weather[0].description,
                                 humidity: data.main.humidity,
-                                icon: data.weather[0].icon
+                                icon: data.weather[0].icon,
+                                weatherMain: data.weather[0].main
                             });
                         }
                     } catch (e) {
@@ -294,17 +309,18 @@
                 const hottestCity = weatherData.reduce((max, city) => city.temp > max.temp ? city : max);
                 
                 // Build recommendation message
-                let recommendationHTML = '<div class="weather-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);">';
-                recommendationHTML += '<h3>⭐ Weather Recommendation</h3>';
+                let recommendationHTML = '<div class="weather-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ffd700 0%, #f8b524 100%);">';
+                recommendationHTML += '<h3>Weather Recommendation</h3>';
                 
                 // Show user location first if available
                 if (userLocation) {
-                    const userRainStatus = userLocation.rain ? '🌧️ Rainy' : '☀️ No rain';
+                    const userWeatherIcon = userLocation.rain ? '☁️' : '☀️';
+                    const userWeatherStatus = userLocation.rain ? 'Cloudy/Rainy' : 'Clear';
                     recommendationHTML += `
                         <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 15px 0;">
                             <h4 style="margin-bottom: 10px;">📍 Your Location: ${userLocation.name}</h4>
-                            <p style="font-size: 1.1em;">🌡️ ${Math.round(userLocation.temp)}°C • ${userRainStatus}</p>
-                            <p style="opacity: 0.9;">${userLocation.description}</p>
+                            <p style="font-size: 1.1em;">🌡️ ${Math.round(userLocation.temp)}°C • ${userWeatherIcon} ${userWeatherStatus}</p>
+                            <p style="opacity: 0.9;">${userLocation.description} (${userLocation.weatherMain})</p>
                         </div>
                     `;
                 }
@@ -315,11 +331,11 @@
                         <div style="background: rgba(255,255,255,0.3); padding: 20px; border-radius: 10px; margin: 15px 0;">
                             <h4 style="font-size: 1.3em; margin-bottom: 10px;">🎉 Best Choice: ${bestCity.name}</h4>
                             <p style="font-size: 1.2em; margin: 10px 0;">
-                                🌡️ ${Math.round(bestCity.temp)}°C (Hottest) • ☀️ No rain
+                                🌡️ ${Math.round(bestCity.temp)}°C (Hottest) • ☀️ Clear weather
                             </p>
-                            <p style="opacity: 0.9;">${bestCity.description}</p>
+                            <p style="opacity: 0.9;">${bestCity.description} (${bestCity.weatherMain})</p>
                             <button onclick="quickSearch('${bestCity.name}')" style="margin-top: 15px; background: white; color: #ff8c69; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                View Full Forecast →
+                                Check out this place!~ →
                             </button>
                         </div>
                     `;
@@ -328,25 +344,26 @@
                         <div style="background: rgba(255,255,255,0.3); padding: 20px; border-radius: 10px; margin: 15px 0;">
                             <h4 style="font-size: 1.3em; margin-bottom: 10px;">🌡️ Hottest: ${hottestCity.name}</h4>
                             <p style="font-size: 1.2em; margin: 10px 0;">
-                                ${Math.round(hottestCity.temp)}°C • ${hottestCity.rain ? '🌧️ Rainy' : '☀️ No rain'}
+                                ${Math.round(hottestCity.temp)}°C • ${hottestCity.rain ? '☁️ Cloudy/Rainy' : '☀️ Clear'}
                             </p>
-                            <p style="opacity: 0.9;">${hottestCity.description}</p>
-                            <p style="margin-top: 10px; font-size: 0.9em;">⚠️ All cities have rain today</p>
+                            <p style="opacity: 0.9;">${hottestCity.description} (${hottestCity.weatherMain})</p>
+                            <p style="margin-top: 10px; font-size: 0.9em;">⚠️ All cities have cloudy or rainy weather today</p>
                         </div>
                     `;
                 }
                 
                 // Show comparison table
-                recommendationHTML += '<div style="margin-top: 20px;"><h4 style="margin-bottom: 10px;">📊 All Cities Comparison:</h4>';
+                recommendationHTML += '<div style="margin-top: 20px;"><h4 style="margin-bottom: 10px;">�� All Cities Comparison:</h4>';
                 recommendationHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">';
                 
                 weatherData.sort((a, b) => b.temp - a.temp).forEach(city => {
-                    const rainIcon = city.rain ? '🌧️' : '☀️';
+                    const weatherIcon = city.rain ? '☁️' : '☀️';
                     const isBest = city.name === bestCity.name && !city.rain;
                     recommendationHTML += `
                         <div style="background: ${isBest ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)'}; padding: 10px; border-radius: 8px; ${isBest ? 'border: 2px solid white;' : ''}">
                             <div style="font-weight: bold;">${city.name} ${isBest ? '⭐' : ''}</div>
-                            <div>${Math.round(city.temp)}°C ${rainIcon}</div>
+                            <div>${Math.round(city.temp)}°C ${weatherIcon}</div>
+                            <div style="font-size: 0.85em; opacity: 0.9;">${city.weatherMain}</div>
                         </div>
                     `;
                 });
@@ -589,14 +606,10 @@
             `;
         }
         
-        // Load default city (Taipei) on page load, or auto-detect location
+        // Load recommendation on page load
         window.onload = function() {
-            // Uncomment the line below to auto-detect location on page load
-            // getLocationWeather();
-            
-            // Default: show Taipei weather
-            document.getElementById('cityInput').value = 'Taipei';
-            getWeather();
+            // Auto-show recommendation
+            getRecommendation();
             
             // Support Enter key for search
             document.getElementById('cityInput').addEventListener('keypress', function(e) {

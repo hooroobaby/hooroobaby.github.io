@@ -13,7 +13,7 @@
         
         body {
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ffd1dc 0%, #ffb347 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -29,7 +29,7 @@
         
         h1 {
             text-align: center;
-            color: #667eea;
+            color: #ff8c69;
             margin-bottom: 30px;
             font-size: 2.5em;
         }
@@ -44,7 +44,7 @@
         select, button {
             padding: 12px 20px;
             font-size: 16px;
-            border: 2px solid #667eea;
+            border: 2px solid #ff8c69;
             border-radius: 10px;
             background: white;
             cursor: pointer;
@@ -56,15 +56,15 @@
             min-width: 250px;
             padding: 12px 20px;
             font-size: 16px;
-            border: 2px solid #667eea;
+            border: 2px solid #ff8c69;
             border-radius: 10px;
             transition: all 0.3s;
         }
         
         input[type="text"]:focus {
             outline: none;
-            border-color: #5568d3;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #ff6b47;
+            box-shadow: 0 0 0 3px rgba(255, 140, 105, 0.1);
         }
         
         select {
@@ -73,16 +73,16 @@
         }
         
         button {
-            background: #667eea;
+            background: #ff8c69;
             color: white;
             font-weight: bold;
             min-width: 120px;
         }
         
         button:hover {
-            background: #5568d3;
+            background: #ff6b47;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(255, 140, 105, 0.4);
         }
         
         .quick-cities {
@@ -95,20 +95,20 @@
         .quick-cities button {
             padding: 8px 16px;
             font-size: 14px;
-            background: white;
+            background: black;
             border: 2px solid #e0e0e0;
             min-width: auto;
         }
         
         .quick-cities button:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
+            border-color: #ff8c69;
+            background: #fff5f2;
         }
         
         .loading {
             text-align: center;
             padding: 40px;
-            color: #667eea;
+            color: #ff8c69;
             font-size: 1.2em;
         }
         
@@ -120,7 +120,7 @@
         }
         
         .weather-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff8c69 0%, #ffb347 100%);
             color: white;
             padding: 25px;
             border-radius: 15px;
@@ -167,7 +167,7 @@
             display: inline-block;
             margin-top: 30px;
             padding: 10px 20px;
-            background: #667eea;
+            background: #ff8c69;
             color: white;
             text-decoration: none;
             border-radius: 10px;
@@ -175,7 +175,7 @@
         }
         
         .back-link:hover {
-            background: #5568d3;
+            background: #ff6b47;
             transform: translateY(-2px);
         }
     </style>
@@ -187,6 +187,7 @@
         <div class="controls">
             <input type="text" id="cityInput" placeholder="what city~" />
             <button onclick="getWeather()">Search City!</button>
+            <button onclick="getLocationWeather()" style="background: #48bb78;">📍 My Location</button>
         </div>
         
         <div class="quick-cities">
@@ -214,6 +215,80 @@
         function quickSearch(city) {
             document.getElementById('cityInput').value = city;
             getWeather();
+        }
+        
+        async function getLocationWeather() {
+            const resultDiv = document.getElementById('weatherResult');
+            
+            if (!navigator.geolocation) {
+                resultDiv.innerHTML = '<div class="error">Your browser does not support geolocation</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading">Getting your location...</div>';
+            
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        // Get current weather by coordinates
+                        const currentResponse = await fetch(
+                            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
+                        );
+                        
+                        if (!currentResponse.ok) {
+                            throw new Error('Unable to fetch weather data');
+                        }
+                        
+                        const currentData = await currentResponse.json();
+                        
+                        // Get 5-day forecast by coordinates
+                        const forecastResponse = await fetch(
+                            `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
+                        );
+                        
+                        const forecastData = await forecastResponse.json();
+                        
+                        // Update input field with city name
+                        document.getElementById('cityInput').value = currentData.name;
+                        
+                        displayWeather(currentData, forecastData);
+                        
+                    } catch (error) {
+                        console.error('Error:', error);
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                <p>Unable to fetch weather data</p>
+                                <p style="font-size: 0.9em; margin-top: 10px;">Please try again later</p>
+                            </div>
+                        `;
+                    }
+                },
+                (error) => {
+                    let errorMessage = 'Unable to get your location';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Location permission denied. Please enable location access in your browser settings.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Location information unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Location request timed out.';
+                            break;
+                    }
+                    
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <p>${errorMessage}</p>
+                            <p style="font-size: 0.9em; margin-top: 10px;">You can still search by city name</p>
+                        </div>
+                    `;
+                }
+            );
         }
         
         async function getWeather() {
@@ -365,8 +440,12 @@
             `;
         }
         
-        // Load default city (Taipei) on page load
+        // Load default city (Taipei) on page load, or auto-detect location
         window.onload = function() {
+            // Uncomment the line below to auto-detect location on page load
+            // getLocationWeather();
+            
+            // Default: show Taipei weather
             document.getElementById('cityInput').value = 'Taipei';
             getWeather();
             

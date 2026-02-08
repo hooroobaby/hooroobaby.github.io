@@ -335,7 +335,7 @@
                             </p>
                             <p style="opacity: 0.9;">${bestCity.description} (${bestCity.weatherMain})</p>
                             <button onclick="quickSearch('${bestCity.name}')" style="margin-top: 15px; background: white; color: #ff8c69; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                Check out this place!~ →
+                                Check out this place! →
                             </button>
                         </div>
                     `;
@@ -353,7 +353,7 @@
                 }
                 
                 // Show comparison table
-                recommendationHTML += '<div style="margin-top: 20px;"><h4 style="margin-bottom: 10px;">�� All Cities Comparison:</h4>';
+                recommendationHTML += '<div style="margin-top: 20px;"><h3 style="margin-bottom: 10px;">All Cities Comparison:</h3>';
                 recommendationHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">';
                 
                 weatherData.sort((a, b) => b.temp - a.temp).forEach(city => {
@@ -588,7 +588,7 @@
                         <span>${day.weather}</span>
                     </div>
                     <div class="weather-info">
-                        <span class="icon">💧</span>
+                        <span class="icon">��</span>
                         <span>Humidity ${day.humidity}%</span>
                     </div>
                     <div class="weather-info">
